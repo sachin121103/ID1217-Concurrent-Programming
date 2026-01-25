@@ -28,14 +28,14 @@ int numArrived = 0;       /* number who have arrived */
 
 /* a reusable counter barrier */
 void Barrier() {
-  pthread_mutex_lock(&barrier);
-  numArrived++;
+  pthread_mutex_lock(&barrier); // Locks the mutex so that only one thread can execute at a time
+  numArrived++; // Increment count when the one more thread comes to the barrier. 
   if (numArrived == numWorkers) {
     numArrived = 0;
-    pthread_cond_broadcast(&go);
+    pthread_cond_broadcast(&go); // When all workers have arrived, we reset the counter and release all threads
   } else
-    pthread_cond_wait(&go, &barrier);
-  pthread_mutex_unlock(&barrier);
+    pthread_cond_wait(&go, &barrier); // Wait for all workers
+  pthread_mutex_unlock(&barrier); // Unlock mutex so all threads can progress. 
 }
 
 /* timer */
@@ -56,6 +56,17 @@ double start_time, end_time; /* start and end times */
 int size, stripSize;  /* assume size is multiple of numWorkers */
 int sums[MAXWORKERS]; /* partial sums */
 int matrix[MAXSIZE][MAXSIZE]; /* matrix */
+
+typedef struct Result
+{
+  int value;
+  int row;
+  int col;
+} Result;
+
+Result maxResults[MAXWORKERS];
+Result minResults[MAXWORKERS];
+
 
 void *Worker(void *);
 
@@ -84,7 +95,7 @@ int main(int argc, char *argv[]) {
   /* initialize the matrix */
   for (i = 0; i < size; i++) {
 	  for (j = 0; j < size; j++) {
-          matrix[i][j] = 1;//rand()%99;
+          matrix[i][j] = rand()%99;
 	  }
   }
 
@@ -126,15 +137,90 @@ void *Worker(void *arg) {
     for (j = 0; j < size; j++)
       total += matrix[i][j];
   sums[myid] = total;
+
+  // Find Max Values in strip
+
+  int maxVal = matrix[first][0];
+  int maxRow = first;
+  int maxCol = 0;
+  for (int i = first; i <=last; i++)
+  {
+    for (int j = 0; j < size; j++)
+    {
+        if (matrix[i][j] > maxVal)
+        {
+          maxVal = matrix[i][j];
+          maxRow = i;
+          maxCol = j;
+        }
+    }
+  }
+  maxResults[myid].value = maxVal;
+  maxResults[myid].col = maxCol;
+  maxResults[myid].row = maxRow;
+
+   // Find Min Values in strip
+
+  int minVal = matrix[first][0];
+  int minRow = first;
+  int minCol = 0;
+  for (int i = first; i <=last; i++)
+  {
+    for (int j = 0; j < size; j++)
+    {
+        if (matrix[i][j] < minVal)
+        {
+          minVal = matrix[i][j];
+          minRow = i;
+          minCol = j;
+        }
+    }
+  }
+
+  minResults[myid].value = minVal;
+  minResults[myid].col = minCol;
+  minResults[myid].row = minRow;
+  
+
   Barrier();
   if (myid == 0) {
     total = 0;
-    for (i = 0; i < numWorkers; i++)
+    for (i = 0; i < numWorkers; i++){
       total += sums[i];
+    }
+
+    int maxValue = maxResults[0].value;
+    int maxRow = maxResults[0].row;
+    int maxCol = maxResults[0].col;
+    for (int i = 0; i < numWorkers; i++)
+    {
+      if (maxResults[i].value > maxValue)
+      {
+        maxValue = maxResults[i].value;
+        maxRow = maxResults[i].row;
+        maxCol = maxResults[i].col;
+      }
+    }
+
+    int minValue = minResults[0].value;
+    int minRow = minResults[0].row;
+    int minCol = minResults[0].col;
+    for (int i = 0; i < numWorkers; i++)
+    {
+      if (minResults[i].value < minValue)
+      {
+        minValue = minResults[i].value;
+        minRow = minResults[i].row;
+        minCol = minResults[i].col;
+      }
+    }
+
     /* get end time */
     end_time = read_timer();
     /* print results */
     printf("The total is %d\n", total);
+    printf("The highest value is %d at row %d and column %d\n", maxValue, maxRow, maxCol);
+    printf("The lowest value is %d at row %d and column %d\n", minValue, minRow, minCol);
     printf("The execution time is %g sec\n", end_time - start_time);
   }
 }
