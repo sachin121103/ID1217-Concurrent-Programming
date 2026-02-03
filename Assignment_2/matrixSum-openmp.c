@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
     for (j = 0; j < size; j++){
       total += matrix[i][j];
     }
-// implicit barrier
 
 #pragma omp parallel
 {
