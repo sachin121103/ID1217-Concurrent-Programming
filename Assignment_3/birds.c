@@ -44,6 +44,7 @@ void* baby_bird_function(void* arg) {
     int id = (int)(long)arg;
     while (1) {
         // Sleep/Rest for a bit before trying to eat
+        srand(time(NULL));
         usleep(rand() % 500000); 
 
         sem_wait(mutex);
