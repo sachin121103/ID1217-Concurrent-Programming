@@ -44,7 +44,7 @@ void* baby_bird_function(void* arg) {
     int id = (int)(long)arg;
     while (1) {
         // Sleep/Rest for a bit before trying to eat
-        srand(time(NULL));
+       
         usleep(rand() % 500000); 
 
         sem_wait(mutex);
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     pthread_t babies[NUM_BABIES];
     pthread_t parent_id;
-
+     srand(time(NULL));
     // Use semaphores
     mutex = sem_open("/bird_mutex", O_CREAT, 0644, 1);
     parent_sleep = sem_open("/parent_sleep", O_CREAT, 0644, 0);
