@@ -12,11 +12,32 @@ class RepairSimulation {
         this.v = v;
     }
 
-    public synchronized void requestRepair(char type) throws InterruptedException {
+    public synchronized void requestRepair(char type, int id) throws InterruptedException {
+        while ((currentA+currentB+currentC >= v) || 
+        (type=='A' && currentA >= maxA) || 
+        (type=='B' && currentB >= maxB) || 
+        (type=='C' && currentC >= maxC)) {
+            
+            System.out.println("Vehicle " + type + id + " is WAITING for a spot...");
+            wait();
+        }
 
+        if (type == 'A') {
+            currentA++;
+        }
+
+        else if (type == 'B') {
+            currentB++;
+        }
+
+        else if (type == 'C') {
+            currentC++;
+        }
+
+        System.out.println("Vehicle " + type + id + " ENTERED. Status: Vehicle A: " + currentA + ", Vehicle B: " + currentB + ", Vehicle C: " + currentC);
     }
 
-    public synchronized void releaseRepair(char type) throws InterruptedException {
+    public synchronized void releaseRepair(char type, int id) throws InterruptedException {
         
     }
 }
