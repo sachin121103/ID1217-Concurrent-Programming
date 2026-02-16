@@ -56,7 +56,32 @@ class RepairSimulation {
 }
 
 class Vehicle extends Thread {
+    private final RepairSimulation station;
+    private final char type;
+    private final int id;
+    
+    public Vehicle(RepairSimulation station, char type, int id) {
+        this.station = station;
+        this.type = type;
+        this.id = id;
+    }
 
+    @Override
+    public void run() {
+        try {
+            station.requestRepair(type, id);
+    
+            long repairTime = System.currentTimeMillis() % 1000;
+            System.out.println("Vehicle " + type + id + " repairing for " + repairTime + "ms");
+    
+            Thread.sleep(repairTime); 
+    
+            station.releaseRepair(type, id);
+    
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     
 }
 
