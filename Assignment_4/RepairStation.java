@@ -37,7 +37,7 @@ class RepairSimulation {
         System.out.println("Vehicle " + type + id + " ENTERED. Status: Vehicle A: " + currentA + ", Vehicle B: " + currentB + ", Vehicle C: " + currentC);
     }
 
-    public synchronized void releaseRepair(char type, int id) throws InterruptedException {
+    public synchronized void releaseRepair(char type, int id) {
         
     }
 }
