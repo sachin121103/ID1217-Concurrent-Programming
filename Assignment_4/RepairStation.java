@@ -18,7 +18,7 @@ class RepairSimulation {
         (type=='B' && currentB >= maxB) || 
         (type=='C' && currentC >= maxC)) {
             
-            System.out.println("Vehicle " + type + id + " is WAITING for a spot...");
+            System.out.println("Vehicle " + type + id + " is waiting for a spot...");
             wait();
         }
 
@@ -34,11 +34,24 @@ class RepairSimulation {
             currentC++;
         }
 
-        System.out.println("Vehicle " + type + id + " ENTERED. Status: Vehicle A: " + currentA + ", Vehicle B: " + currentB + ", Vehicle C: " + currentC);
+        System.out.println("Vehicle " + type + id + " Entered. Status: Vehicle A: " + currentA + ", Vehicle B: " + currentB + ", Vehicle C: " + currentC);
     }
 
-    public synchronized void releaseRepair(char type, int id) {
-        
+    public synchronized void releaseRepair(char type, int id){
+        if (type == 'A') {
+            currentA--;
+        }
+
+        else if (type == 'B') {
+            currentB--;
+        }
+
+        else if (type == 'C') {
+            currentC--;
+        }
+
+        System.out.println("Vehicle " + type + id + " Left. Status: Vehicle A: " + currentA + ", Vehicle B: " + currentB + ", Vehicle C: " + currentC);
+        notifyAll();
     }
 }
 
