@@ -88,7 +88,15 @@ class Vehicle extends Thread {
 
 public class RepairStation {
     public static void main(String[] args) {
-        
+        RepairSimulation station = new RepairSimulation(2, 2, 2, 3);
+
+        new Vehicle(station, 'A', 1).start();
+        new Vehicle(station, 'A', 2).start();
+        new Vehicle(station, 'B', 1).start();
+        new Vehicle(station, 'B', 2).start();
+        new Vehicle(station, 'C', 1).start();
+        new Vehicle(station, 'C', 2).start();
+
     }
 
     
