@@ -20,6 +20,7 @@ void run_woman(int rank, int n, int preferences[]){
 
 int current_man_id = -1;
 int current_man_rank = -1
+
 MPI_status status;
 int new_man;
 
@@ -31,7 +32,7 @@ int new_man;
 
             case TAG_STOP:
                 printf("[Woman %d] Locked in 4lyff: Man %d\n", my_id, current_partner);
-                break;
+            break;
 
             case TAG_PROPOSE:
                 int new_man = man_id;
@@ -42,6 +43,7 @@ int new_man;
                     current_man_rank = new_rank;
                     MPI_Send(NULL, 0, MPI_INT, incoming_man, TAG_ACCEPT, MPI_COMM_WORLD);
                     printf("[Woman %d] Accepted my Mannnnnnn %d (First proposal)\n", my_id, incoming_man);
+
                 }
 
                 if(new_rank < current_man_rank){ //rejects directly cause new man worse
@@ -65,13 +67,27 @@ int new_man;
     }
 }
 
-
-    
-
-
 void run_counter(int n);{
 
+int matched_women_count = 0;
+int signal_buffer;
+MPI_Status status;
 
+    while (matched_women_count < n) {
+    
+        MPI_Recv(&signal_buffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_MATCHED, MPI_COMM_WORLD, &status);
+
+        matched_women_count++;
+
+        printf("Notification received from Woman %d. Total matched: %d/%d\n", 
+               status.MPI_SOURCE, matched_women_count, n);
+    }
+
+    for (int i = 1; i < 2*n; i++) { //stop everyone
+        MPI_Send(NULL, 0, MPI_INT, i, TAG_STOP, MPI_COMM_WORLD);
+    }
+    printf("everyone in stable marriages")
 }
+
 
 int main(int argc, char** argv);
