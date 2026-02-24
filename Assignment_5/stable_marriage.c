@@ -14,12 +14,76 @@
 
 
 
-void run_man(int rank, int n, int preferences[]);
+void run_man(int rank, int n, int preferences[]){
+    int man_id = rank;
+    int next_proposal = 0;
+    int engaged = 0;
+    int running = 1;
+    int current_partner = -1; // Current fiancée's rank
+    int message_buffer;
+    
+    MPI_Status status;
+
+    while (running)
+    {
+        if (!engaged && next_proposal < n)
+        {
+            int woman_id = preferences[next_proposal];
+            int woman_rank = n + woman_id;
+
+            printf("[Man %d] Shooting like Curry from the moon to [Woman %d]\n", man_id+1, woman_id+1);
+            fflush(stdout);
+
+            MPI_Send(&man_id, 1, MPI_INT, woman_rank, TAG_PROPOSE, MPI_COMM_WORLD);
+            next_proposal++;
+        }
+
+        MPI_Recv(&message_buffer, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        switch (status.MPI_TAG)
+        {
+        case TAG_ACCEPT:
+            engaged = 1;
+            current_partner = status.MPI_SOURCE;
+            printf("[Man %d]'s shot went in! Accepted by [Woman %d]\n", man_id+1, status.MPI_SOURCE - n + 1);
+            fflush(stdout);
+            break;
+        
+        case TAG_REJECT:
+            printf("Oh my goodness Valentine! [Man %d] was rejected by [Woman %d]\n", man_id+1, status.MPI_SOURCE - n + 1);
+            fflush(stdout);
+            break;
+        
+        case TAG_DUMP:
+            engaged = 0;
+            current_partner = -1;
+            printf("[Man %d] dumped [Woman %d]. Back to the drawing board buddy.\n", man_id+1, status.MPI_SOURCE - n + 1);
+            fflush(stdout);
+            break;
+
+        case TAG_STOP:
+            running = 0;
+            if (engaged)
+            {
+                printf("[Man %d] cuffed with [Woman %d]. Good job!\n", man_id+1, current_partner - n +1);
+            } else
+            {
+                printf("[Man %d] ended single. Time to hit the bottle\n", man_id+1);
+            }
+            fflush(stdout);
+            break;
+        
+        default:
+            break;
+        }
+    }
+    
+}
 
 void run_woman(int rank, int n, int preferences[]){
 
 int current_man_id = -1;
-int current_man_rank = -1
+int current_man_rank = -1;
 
 MPI_status status;
 int new_man;
@@ -67,27 +131,68 @@ int new_man;
     }
 }
 
-void run_counter(int n);{
+void run_counter(int n){
 
-int matched_women_count = 0;
-int signal_buffer;
-MPI_Status status;
+    int matched_women_count = 0;
+    int signal_buffer;
+    MPI_Status status;
 
-    while (matched_women_count < n) {
-    
-        MPI_Recv(&signal_buffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_MATCHED, MPI_COMM_WORLD, &status);
+        while (matched_women_count < n) {
+        
+            MPI_Recv(&signal_buffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_MATCHED, MPI_COMM_WORLD, &status);
 
-        matched_women_count++;
+            matched_women_count++;
 
-        printf("Notification received from Woman %d. Total matched: %d/%d\n", 
-               status.MPI_SOURCE, matched_women_count, n);
-    }
+            printf("Notification received from Woman %d. Total matched: %d/%d\n", 
+                status.MPI_SOURCE, matched_women_count, n);
+        }
 
-    for (int i = 1; i < 2*n; i++) { //stop everyone
-        MPI_Send(NULL, 0, MPI_INT, i, TAG_STOP, MPI_COMM_WORLD);
-    }
-    printf("everyone in stable marriages")
+        for (int i = 1; i < 2*n; i++) { //stop everyone
+            MPI_Send(NULL, 0, MPI_INT, i, TAG_STOP, MPI_COMM_WORLD);
+        }
+
+    printf("Everyone in stable marriages");
 }
 
+void generate_preferences(int *prefs, int n){
+    for (int i = 0; i < n; i++)
+    {
+        prefs[i] = i;
+    }
 
-int main(int argc, char** argv);
+    for (int i = n - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
+        int temp = prefs[i];
+        prefs[i] = prefs[j];
+        prefs[j] = temp;
+    }
+}
+
+int main(int argc, char** argv){
+    MPI_Init(&argc, &argv);
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    int n = atoi(argv[1]);
+    srand(time(NULL) + rank);
+
+    int preferences[n];
+    generate_preferences(preferences, n);
+
+    if (rank < n)
+    {
+        run_man(rank, n, preferences);
+    } else if (rank < 2*n)
+    {
+       run_woman(rank, n, preferences);
+    } else
+    {
+        run_counter(n);
+    }
+
+    MPI_Finalize();
+    return 0;
+
+}
