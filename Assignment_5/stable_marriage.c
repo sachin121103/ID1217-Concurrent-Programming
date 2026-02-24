@@ -16,14 +16,12 @@
 
 void run_man(int rank, int n, int preferences[]);
 
-void run_woman(int rank, int n, int preferences[]);{
+void run_woman(int rank, int n, int preferences[]){
 
 int current_man_id = -1;
 int current_man_rank = -1
-
 MPI_status status;
 int new_man;
-
 
     while (true){
 
@@ -73,7 +71,7 @@ int new_man;
 
 void run_counter(int n);{
 
-    
+
 }
 
 int main(int argc, char** argv);
