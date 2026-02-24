@@ -32,7 +32,7 @@ while (true){
     switch(status.MPI_TAG){
 
         case TAG_STOP:
-            printf("[Woman %d] Received STOP. Final partner: Man %d\n", my_id, current_partner);
+            printf("[Woman %d] Locked in 4lyff: Man %d\n", my_id, current_partner);
             break;
 
         case TAG_PROPOSE:
